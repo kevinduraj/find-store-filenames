@@ -10,10 +10,13 @@ public class App {
     public static final String url      = "jdbc:mysql://127.0.0.1:3306/files";
     public static final String user     = "root";
     public static final String password = "";
+    static boolean createTables = false;
     /*--------------------------------------------------------------------------------------------*/
     static String[][] params = new String [][] {
-                    {   "/Users/xcode", "java"    },
-                    {   "/Users/xcode", "txt"    },		    
+                    {   "/Users/xcode", "java" },
+                    {   "/Users/xcode", "txt"  },
+                    {   "/Users/xcode", "xml"  },		    
+
     };
 
     /*-------------------------------------------------------------------------------------*/
@@ -24,7 +27,7 @@ public class App {
 
         for (int i = 0; i < params.length; i++) {
 
-            Runnable task = new BrowseDirectories(true, new File(params[i][0]), params[i][1]);
+            Runnable task = new BrowseDirectories(createTables, new File(params[i][0]), params[i][1]);
             Thread worker = new Thread(task);
             worker.setName(String.valueOf(i));
             worker.start();

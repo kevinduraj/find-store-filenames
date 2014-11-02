@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import kduraj.App;
 
 /*------------------------------------------------------------------------------------------------*/
 public class BrowseDirectories implements Runnable {
@@ -17,7 +16,7 @@ public class BrowseDirectories implements Runnable {
     File file;
     String extension;
     int file_count = 0;
-    String PREFIX = "FILE_";
+    String PREFIX = "filetype_";
 
     /*--------------------------------------------------------------------------------------------*/
     public BrowseDirectories(boolean createTable, File file, String extension) {
@@ -85,7 +84,7 @@ public class BrowseDirectories implements Runnable {
             Class.forName("com.mysql.jdbc.Driver");
             conn = DriverManager.getConnection(App.url, App.user, App.password);
 
-            String SQL = "INSERT INTO " + PREFIX + extension + " ( filename, processed )"
+            String SQL = "INSERT INTO " + PREFIX + extension + " ( filename, note )"
                     + " VALUES ( ?, ? ) "
                     + " ON DUPLICATE KEY UPDATE counter=counter+1; ";
             stmt = conn.prepareStatement(SQL);
@@ -135,29 +134,30 @@ public class BrowseDirectories implements Runnable {
         System.out.println("create filetype table");
 
         Class.forName("com.mysql.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(App.url, App.user, App.password);
-
-        SQL = "DROP TABLE IF EXISTS " + PREFIX + extension + ";";
-        stmt = conn.prepareStatement(SQL);
-        stmt.executeUpdate();
-
-        SQL = "CREATE TABLE IF NOT EXISTS " + PREFIX + extension + " ( \n"
-                + "  filename          varchar(64)      NOT NULL, \n"
-                + "  dts               timestamp        NOT NULL DEFAULT CURRENT_TIMESTAMP, \n"
-                + "  counter           int(11)          NOT NULL DEFAULT '1',   \n"
-                + "  processed         char(8)          NOT NULL DEFAULT 'new', \n"
-                + "  PRIMARY KEY       (filename),   \n"
-                + "  KEY processed     (processed)      \n"
-                + ") ENGINE=MyISAM;";
-        //+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
-
-        System.out.println("\n\nSQL = " + SQL + "\n\n");
-
-        stmt = conn.prepareStatement(SQL);
-        stmt.executeUpdate();
-
-        stmt.close();
-        conn.close();
+        
+        try (Connection conn = DriverManager.getConnection(App.url, App.user, App.password)) {
+            
+            SQL = "DROP TABLE IF EXISTS " + PREFIX + extension + ";";
+            stmt = conn.prepareStatement(SQL);
+            stmt.executeUpdate();
+            
+            SQL = "CREATE TABLE IF NOT EXISTS " + PREFIX + extension + " ( \n"
+                    + "  filename        varchar(128)  NOT NULL, \n"
+                    + "  dts             timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP, \n"
+                    + "  counter         int(11)       NOT NULL DEFAULT '1',   \n"
+                    + "  note            char(16)      NOT NULL DEFAULT 'new', \n"
+                    + "  PRIMARY KEY     (filename),   \n"
+                    + "  KEY processed   (dts)         \n"
+                    + ") ENGINE=MyISAM;";
+            //+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            
+            System.out.println("\n\nSQL = " + SQL + "\n\n");
+            
+            stmt = conn.prepareStatement(SQL);
+            stmt.executeUpdate();
+            
+            stmt.close();
+        }
 
     }
     /*--------------------------------------------------------------------------------------------*/
